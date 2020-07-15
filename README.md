@@ -8,5 +8,5 @@ Current thinking is to try a rule-based playing strategy and try to learn useful
 
 ## History
 
-**15/7/2020** P5 js based implementation with two random players. Click the mouse to advance/reset the game.
+**15/7/2020** P5 js based [implementation](https://editor.p5js.org/maleyenator/sketches/lCl-3o7aD) with two random players. Click the mouse to advance/reset the game.
 
