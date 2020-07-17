@@ -52,7 +52,17 @@ QPlayer = function(marking) {
       // Select move (max value or random)
     } else {
       // Select move solely on the basis of the Qtable
-      
+
     }
   }
+
+  this.newGame = function() {
+
+  }
+
+  this.result = function(r) {
+    console.log('Result for QPlayer ' + this.marking + ': ' + r);
+  }
+
+
 }

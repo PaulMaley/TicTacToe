@@ -5,6 +5,10 @@
  * Duck-Typing! Player must provide methods: select() and marker()
  * select:: markings -> idx in {0,..8} the index of the space selected
  * marker:: () -> marking (typically 'X' or 'O')
+ *
+ * To accomodate learning players we need to tell each player when a
+ * new game starts, when a game ends and the result (win/lose/tie)
+ * for each player.
  */
 
 // function Game() {
@@ -13,10 +17,10 @@ exports.Game = function() {
   console.log('Game on, man!');
 
   // Markings indices are Left->Right, Top to bottom
-  //this.markings = ['','','','','','','','',''];
+  this.markings = ['','','','','','','','',''];
   this.players = [];
-  //this.current = 0; // Current player
-  //this.finished = false;
+  this.current = 0; // Current player
+  this.finished = false;
 
   this.reset = function() {
     this.current = 0;
@@ -115,7 +119,7 @@ exports.Game = function() {
     // Select move (payers will have different strategies)
     let idx = this.players[this.current].select(this.markings);
     this.markings[idx] = this.players[this.current].marker();
-    this.current = (this.current + 1) % this.players.length;
+//    this.current = (this.current + 1) % this.players.length;
   }
 
   // TODO:: Rewrite this horrible function
@@ -126,11 +130,25 @@ exports.Game = function() {
 //      console.log(status);
 //      console.log(this.markings);
       if (status == 'None') {
-        // No winner .. continue
+        // No winner .. continue: Next player becomes current
+        this.current = (this.current + 1) % this.players.length;
       } else {
         console.log(status == 'Tie' ? status : 'Winner: '+status);
+        // If a tie - inform all players
+        // Otherwise inform winner and loser(s) (for more general games)
+        if (status == 'Tie') {
+          this.players.forEach(p => p.result('Tie'));
+        } else {
+          this.players[this.current].result('Win');
+          this.players.filter((p,i) => i != this.current).map(p => p.result('Lose'));
+        }
       }
     }
+  }
+
+  // To accomodate Learning
+  this.newGame = function() {
+    this.players.forEach(p => p.newGame());
   }
 
   this.reset();
