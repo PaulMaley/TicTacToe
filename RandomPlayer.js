@@ -3,8 +3,9 @@
  *
  */
 
-exports.RandomPlayer = function(marking) {
+exports.RandomPlayer = function(marking, game) {
   this.marking = marking;
+  this.game = undefined; // Unused reference to the game itself
 
   this.marker = function() {
     return this.marking
@@ -19,6 +20,6 @@ exports.RandomPlayer = function(marking) {
   this.newGame = function() {/* Dummy method for random player */}
 
   this.result = function(r) {
-    console.log('Result for RPlayer ' + this.marking + ': ' + r);
+    //console.log('Result for RPlayer ' + this.marking + ': ' + r);
   }
 }

@@ -21,6 +21,15 @@ exports.Game = function() {
   this.players = [];
   this.current = 0; // Current player
   this.finished = false;
+  this.winner = undefined; // Winner or 'Tie'
+
+  // Pretty print the board
+  this.print = function() {
+    tmp = this.markings.map(e => e == '' ? '.' : e);
+    console.log(tmp[0] + tmp[1] + tmp[2]);
+    console.log(tmp[3] + tmp[4] + tmp[5]);
+    console.log(tmp[6] + tmp[7] + tmp[8] + '\n');
+  }
 
   this.reset = function() {
     this.current = 0;
@@ -30,6 +39,7 @@ exports.Game = function() {
 
   this.addPlayer = function(p) {
     this.players.push(p);
+    p.game = this;
   }
 
   // Check row r in {0,1,2} -> Bool
@@ -61,7 +71,7 @@ exports.Game = function() {
   }
 
   // Returns false or the winning symbol !!
-  // TODO:: Rewrite this shit !!
+  // TODO:: Rewrite this shit !! Replace it by result (below)
   this.isFinished = function() {
     // Default value
     let winner = 'None';
@@ -124,16 +134,21 @@ exports.Game = function() {
 
   // TODO:: Rewrite this horrible function
   this.playGame = function() {
+    // Inform players of new game
+    this.newGame();
+
     while ( !this.finished ) {
       this.playOne();
       let status = this.isFinished();
 //      console.log(status);
 //      console.log(this.markings);
+//      this.print();
       if (status == 'None') {
         // No winner .. continue: Next player becomes current
         this.current = (this.current + 1) % this.players.length;
       } else {
-        console.log(status == 'Tie' ? status : 'Winner: '+status);
+//        console.log(status == 'Tie' ? status : 'Winner: '+status);
+        this.winner = status;
         // If a tie - inform all players
         // Otherwise inform winner and loser(s) (for more general games)
         if (status == 'Tie') {
@@ -152,6 +167,50 @@ exports.Game = function() {
   }
 
   this.reset();
+
+  // Function to dtermine the result of a given game state.
+  // For learning players .. Players need a reference to the game to use this
+  // TODO: Rewrite this to use the row/column functions above
+  this.result = function(markings) {
+    let winner = 'None';
+    if ( markings[0] == markings[1] &&         // Check rows
+         markings[0] == markings[2] &&
+         markings[0] != '' ) {
+      winner = markings[0];
+    } else if ( markings[3] == markings[4] &&
+                markings[3] == markings[5] &&
+                markings[3] != '' ) {
+      winner = markings[3];
+    } else if ( markings[6] == markings[7] &&
+                markings[6] == markings[8] &&
+                markings[6] != '' ) {
+      winner = markings[6];
+    } else if ( markings[0] == markings[3] && // Check colomns
+                markings[0] == markings[6] &&
+                markings[0] != '' ) {
+      winner = markings[0];
+    } else if ( markings[1] == markings[4] &&
+                markings[1] == markings[7] &&
+                markings[1] != '' ) {
+      winner = markings[1];
+    } else  if ( markings[2] == markings[5] &&
+                 markings[2] == markings[8] &&
+                 markings[2] != '' ) {
+      winner = markings[2];
+    } else  if ( markings[0] == markings[4] && // Diagonals
+                 markings[0] == markings[8] &&
+                 markings[0] != '' ) {
+      winner = markings[0];
+    } else  if ( markings[2] == markings[4] &&
+                 markings[2] == markings[6] &&
+                 markings[2] != '' ) {
+      winner = markings[2];
+    } else if (markings.indexOf('') == -1) {
+      // Game is tied
+      winner = 'Tie'
+    }
+    return winner;
+  }
 }
 
 //let game = new Game();

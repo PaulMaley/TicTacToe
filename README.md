@@ -10,3 +10,5 @@ Current thinking is to try a rule-based playing strategy and try to learn useful
 
 **15/7/2020** P5 js based [implementation](https://editor.p5js.org/maleyenator/sketches/lCl-3o7aD) with two random players. Click the mouse to advance/reset the game.
 
+**18/7/2020** Moved to node.js and implemented a first
+learning player (QPlayer.js) -- It doesn't learn !!
