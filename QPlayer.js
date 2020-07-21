@@ -84,14 +84,16 @@ exports.QPlayer = function(marking, game) {
 
   // Function to decide whether to play a random move or a policy move
   this.playRandom = function() {
-    // Fixed value ... (25% random)
-    return (Math.random() < 0.05);
+    // Fixed value ... (10% random)
+    return (Math.random() < 0.1);
   }
 
   // Return the code for the state s': the state arising from
   // the current state (marking) and the selection of a cell (idx)
   this.postcode = function(markings, idx) {
-    return this.code(markings) + (this.marking == 'X' ? 1 : 2)*(3**idx);
+//    return this.code(markings) + (this.marking == 'X' ? 1 : 2)*(3**idx);
+// TODO: Is line above wrong ???? I think so ... look at defn above !! (code)
+    return this.code(markings) + (this.marking == 'O' ? 1 : 2)*(3**idx);
   }
 
   // How the player selects its move depends upon wheather is is learning or not
@@ -109,14 +111,15 @@ exports.QPlayer = function(marking, game) {
       // Then order (descending) the available actions according to the value table
       orderedActions = actions.map(a => [a, this.VTable[this.postcode(markings,a)]]).sort(
         (x1,x2) =>  (x1[1] > x2[1]) ? -1 : 0);
-//      console.log('State: ' + markings + ', Actions: ' + orderedActions);
+      //console.log('State: ' + markings + ', Actions: ' + orderedActions);
       selection = orderedActions[0][0];
+      //console.log(orderedActions[0][1]); // Should be 1 for the last move ...
       // Update VTable
       idxp = this.code(this.previousState);
       idx = this.postcode(markings, selection);
-      console.log('Value (pre): ' + this.VTable[idxp]);
+      //console.log('Value (pre): ' + this.VTable[idxp]);
       this.VTable[idxp] += 0.1 * (this.VTable[idx] - this.VTable[idxp]);
-      console.log('Value (post): ' + this.VTable[idxp]);
+      //console.log('Value (post): ' + this.VTable[idxp]);
     }
     return selection;
   }
