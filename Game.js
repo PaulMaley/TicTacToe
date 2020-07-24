@@ -9,7 +9,16 @@
  * To accomodate learning players we need to tell each player when a
  * new game starts, when a game ends and the result (win/lose/tie)
  * for each player.
+ *
+ * Protocol for playing the game is
+ *
+ * reset()
+ * newGame()
+ * playOne()
  */
+
+
+
 
 // function Game() {
 
@@ -31,6 +40,7 @@ exports.Game = function() {
     console.log(tmp[6] + tmp[7] + tmp[8] + '\n');
   }
 
+  // Puts the game back to starting state -- Could be part of newGame() !!
   this.reset = function() {
     this.current = 0;
     this.markings = ['','','','','','','','',''];
@@ -41,6 +51,70 @@ exports.Game = function() {
     this.players.push(p);
     p.game = this;
   }
+
+  // To accomodate Learning - called before play starts
+  this.newGame = function() {
+    this.players.forEach(p => p.newGame());
+  }
+
+  // Game is finished, but if the other player won on the last move Otherwise
+  // player has no chance to learn from that loss --  the endGame() function
+  // remedies this problem
+  this.endGame = function() {
+    this.players.forEach(p => p.endGame());
+  }
+
+  // Randomize first player
+  this.setRandomFirstPlayer = function() {
+    this.current = Math.floor(Math.random() * this.players.length);
+  }
+
+    this.playOne = function() {
+  //      console.log('Playing: ', this.players[this.current].marker);
+
+      // Select move (payers will have different strategies)
+      let idx = this.players[this.current].select(this.markings);
+      this.markings[idx] = this.players[this.current].marker();
+  //    this.current = (this.current + 1) % this.players.length;
+    }
+
+    // TODO:: Rewrite this horrible function
+    this.playGame = function() {
+      // Inform players of new game
+      // Put this into the game server at the same level as reset() and print()
+      // this.newGame();
+
+      // Print out first player
+      //console.log('First player: ' + this.players[this.current].marker());
+
+      while ( !this.finished ) {
+        this.playOne();
+        let status = this.isFinished();
+  //      console.log(status);
+  //      console.log(this.markings);
+  //      this.print();
+        if (status == 'None') {
+          // No winner .. continue: Next player becomes current
+          this.current = (this.current + 1) % this.players.length;
+        } else {
+  //        console.log(status == 'Tie' ? status : 'Winner: '+status);
+          this.winner = status;
+          // If a tie - inform all players
+          // Otherwise inform winner and loser(s) (for more general games)
+          if (status == 'Tie') {
+            this.players.forEach(p => p.result('Tie'));
+          } else {
+            this.players[this.current].result('Win');
+            this.players.filter((p,i) => i != this.current).map(p => p.result('Lose'));
+          }
+        }
+      }
+    }
+
+
+  /*
+   * Functions for implementing the rules
+   */
 
   // Check row r in {0,1,2} -> Bool
   this.fullRow = function(r) {
@@ -123,48 +197,6 @@ exports.Game = function() {
     return winner;
   }
 
-  this.playOne = function() {
-//      console.log('Playing: ', this.players[this.current].marker);
-
-    // Select move (payers will have different strategies)
-    let idx = this.players[this.current].select(this.markings);
-    this.markings[idx] = this.players[this.current].marker();
-//    this.current = (this.current + 1) % this.players.length;
-  }
-
-  // TODO:: Rewrite this horrible function
-  this.playGame = function() {
-    // Inform players of new game
-    this.newGame();
-
-    while ( !this.finished ) {
-      this.playOne();
-      let status = this.isFinished();
-//      console.log(status);
-//      console.log(this.markings);
-//      this.print();
-      if (status == 'None') {
-        // No winner .. continue: Next player becomes current
-        this.current = (this.current + 1) % this.players.length;
-      } else {
-//        console.log(status == 'Tie' ? status : 'Winner: '+status);
-        this.winner = status;
-        // If a tie - inform all players
-        // Otherwise inform winner and loser(s) (for more general games)
-        if (status == 'Tie') {
-          this.players.forEach(p => p.result('Tie'));
-        } else {
-          this.players[this.current].result('Win');
-          this.players.filter((p,i) => i != this.current).map(p => p.result('Lose'));
-        }
-      }
-    }
-  }
-
-  // To accomodate Learning
-  this.newGame = function() {
-    this.players.forEach(p => p.newGame());
-  }
 
   this.reset();
 

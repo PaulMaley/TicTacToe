@@ -17,6 +17,13 @@
  * Problem 2: State -> possible actions.
  * Problem 3: Learning.
  *
+ * Rethink the learning.
+ * For state S, choose action a. Opponent then chooses action b and the
+ * new state S' is determined from S -> S,a -> S,a,b = S'
+ * S' and S are the states to be used in the learning algorithm.
+ *
+ * We don't need postcode() - we just use the state on successive invocations
+ * of select(). Checking that the state has changed!
  */
 
 
@@ -25,8 +32,8 @@ exports.QPlayer = function(marking, game) {
   this.learning = true;  // Assume that we create an unlearned player
                          // TODO: modify to be able to read in a Qtable
   this.game = game;      // Reference to the game engine
-  this.previousState = [];    // This is the state that existed the
-                                     // last time that this player played.
+  this.previousState = undefined;    // This is code of the after-state that existed
+                              // after the last time that this player played.
 
   this.marker = function() {
     return this.marking;
@@ -85,7 +92,7 @@ exports.QPlayer = function(marking, game) {
   // Function to decide whether to play a random move or a policy move
   this.playRandom = function() {
     // Fixed value ... (10% random)
-    return (Math.random() < 0.1);
+    return (Math.random() < 0.05);
   }
 
   // Return the code for the state s': the state arising from
@@ -113,14 +120,23 @@ exports.QPlayer = function(marking, game) {
         (x1,x2) =>  (x1[1] > x2[1]) ? -1 : 0);
       //console.log('State: ' + markings + ', Actions: ' + orderedActions);
       selection = orderedActions[0][0];
+
+      // Learning -- Update VTable (but only if state has changed)
       //console.log(orderedActions[0][1]); // Should be 1 for the last move ...
       // Update VTable
-      idxp = this.code(this.previousState);
-      idx = this.postcode(markings, selection);
-      //console.log('Value (pre): ' + this.VTable[idxp]);
-      this.VTable[idxp] += 0.1 * (this.VTable[idx] - this.VTable[idxp]);
-      //console.log('Value (post): ' + this.VTable[idxp]);
+      idx = this.previousState;
+      idxp = this.postcode(markings,selection);
+      if ( idx != undefined) {
+        //console.log('Value (pre): ' + this.VTable[idxp]);
+        this.VTable[idx] += 0.1 * (this.VTable[idxp] - this.VTable[idx]);
+        //console.log('Value (post): ' + this.VTable[idxp]);
+      }
     }
+
+    // Set previous AFTER-state to be this postcode(this-state,selection)
+    // S and S' are both "after-states" ... i.e. Result of (s,a)
+    this.previousState = this.postcode(markings, selection);
+
     return selection;
   }
 
@@ -128,11 +144,21 @@ exports.QPlayer = function(marking, game) {
     // Learner needs to know the previous state (B4 opponents moce)
     // Initialise it here
     //console.log(this.game);
-    this.previousState = ['','','','','','','','',''];//Array.from(this.game.marking);
+    this.previousState = this.code(['','','','','','','','','']);//Array.from(this.game.marking);
   }
 
+  // In the event of losing this function allows the player to learn from the loss
   this.result = function(r) {
     //console.log('Result for QPlayer ' + this.marking + ': ' + r);
+    idx = this.previousState;
+    idxp = this.code(this.game.markings);
+    if ( idx != idxp) {
+      //console.log('Value (pre): ' + this.VTable[idx]);
+      this.VTable[idx] += 0.1 * (this.VTable[idxp] - this.VTable[idx]);
+      //console.log('Value (post): ' + this.VTable[idx]);
+    }
+    if (idx == 1229) {console.log(this.marking + ': V[1229]: ' + this.VTable[1229])}
+    //console.log('Result: ' + r + ' VTable: ' + this.VTable[idx])
   }
 
 
